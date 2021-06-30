@@ -1,0 +1,58 @@
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('RUN script')
+      .addItem('SEND Emails', 'sendEmails2')
+      .addToUi();
+}
+
+var EMAIL_SENT = 'EMAIL_SENT';
+var sender = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet2").getRange("A2").getDisplayValue();
+var subject = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet2").getRange("B2").getDisplayValue();
+var signature = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet2").getRange("C2").getDisplayValue();
+
+function sendEmails2() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1");
+  var startRow = 2;
+  var numRows = sheet.getLastRow() -1;
+  var dataRange = sheet.getRange(startRow, 1, numRows, 12);
+  var data = dataRange.getValues();
+  for (var i = 0; i < data.length; ++i) {
+    var row = data[i];
+    var ccAddress = row[0];
+    var recipientAddress = row[2];
+    var recipientName = row[3];
+    var userPass = row[6];
+    var emailSent = row[7];
+    var freelancer = row[8];
+    var laptopPass = "";
+
+    if (freelancer == false )
+     {
+       laptopPass = "Laptop password (please change it!):" + "<br/>" + "<b>" + "PASSWORD_FOR_ANYTHING" + "</b>" + "<br/><br/>"
+     } ;
+
+    var curDate = Utilities.formatDate(new Date(), "GMT+1", "MM/dd/yyyy")
+    if (emailSent !== EMAIL_SENT) {
+
+      MailApp.sendEmail({
+        to: recipientAddress,
+        name: sender,
+        subject: subject,
+        htmlBody: ("Hello " + recipientName + ',' + "<br/><br/>" +
+        "We're excited to have you onboard!" + "<br/><br/>" +
+        'Due to the current Corona situation the IT onboarding is remote. '  + '<a href="https://drive.google.com/file/d/KEY_TO_FILE_NEEDS_TO_BE_SHARED_WORLDWIDE"><b>Attached</b></a>' + "<br/><br/>" +
+        "Your username:" + "<br/>" + "<b>" + ccAddress + "</b>" + "<br/>" +
+        "<br/>" + "Your password:" + "<br/>" + "<b>" + userPass + "</b>" + "<br/>" +
+        "<br/>" + laptopPass +
+        "<br/><br/>" +
+        '*This email was generated automatically. Please reach out to me if you think there is a mistake.' + "<br/><br/>" +
+        'Best,' + "<br/>" + signature + "<br/>" +
+        "<img style='max-height:50px; max-width:50px' src='https://LINK_TO_PICTURE_OR_LOGO.png'/>")
+
+      });
+      sheet.getRange(startRow + i, 8).setValue(EMAIL_SENT);
+      sheet.getRange(startRow + i, 10).setValue(new Date()).setNumberFormat("dd/MM/yyyy HH:mm:ss");
+      SpreadsheetApp.flush();
+    }
+  }
+}
